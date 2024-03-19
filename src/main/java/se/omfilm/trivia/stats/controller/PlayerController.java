@@ -27,6 +27,6 @@ public class PlayerController {
 
     @GetMapping(value = "/players/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
     public PlayerDetailsResponse getPlayerDetails(@PathVariable("name") String name) {
-        throw new UnsupportedOperationException("Not implemented");
+        throw new UnsupportedOperationException("Not implemented"); //TODO
     }
 }
