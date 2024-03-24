@@ -12,6 +12,7 @@ public record PlayerSummary(
         Guesses guesses
 ) {
     private static final int MINIMUM_GUESS_COUNT = 25;
+    public static final int MINIMUM_WIN_COUNT = 1;
 
     public record Guesses(
             int correct,
@@ -24,16 +25,10 @@ public record PlayerSummary(
             int wins
     ) {}
 
-    public static PlayerSummary of(String name, String avatar, Games games, Guesses guesses, Percentable totals) {
-        BigDecimal rating = BayesianEstimate.calculate(new Percentable() {
-            public int count() {
-                return guesses.correct();
-            }
-
-            public int total() {
-                return guesses.correct() + guesses.incorrect() + guesses.unanswered();
-            }
-        }, totals, MINIMUM_GUESS_COUNT);
-        return new PlayerSummary(name, avatar, games, rating, guesses);
+    public static PlayerSummary of(String name, String avatar, GamesCount games, GamesCount gamesTotals, GuessCount guessCount, GuessCount guessTotals) {
+        BigDecimal winRating = BayesianEstimate.calculate(games, gamesTotals, MINIMUM_WIN_COUNT).multiply(new BigDecimal("0.75"));
+        BigDecimal guessRating = BayesianEstimate.calculate(guessCount.getGuessPercentable(), guessTotals.getGuessPercentable(), MINIMUM_GUESS_COUNT).multiply(new BigDecimal("0.25"));
+        BigDecimal averageRating = guessRating.add(winRating);
+        return new PlayerSummary(name, avatar, games.toGamesSummary(), averageRating, guessCount.toSummary());
     }
 }

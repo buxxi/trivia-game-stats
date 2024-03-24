@@ -6,15 +6,33 @@ public record GuessCount(
         int unanswered,
         int totalPointsWon,
         int totalPointsLost
-) implements Percentable {
+) {
     public static final GuessCount EMPTY = new GuessCount(0, 0, 0, 0, 0);
 
-    public int count() {
-        return correct();
+    public Percentable getGuessPercentable() {
+        return new Percentable() {
+            public int count() {
+                return correct();
+            }
+
+            public int total() {
+                return correct() + incorrect() + unanswered();
+            }
+        };
     }
 
-    public int total() {
-        return correct() + incorrect() + unanswered();
+    public Percentable getPointsPercentable() {
+        return new Percentable() {
+            @Override
+            public int count() {
+                return totalPointsWon();
+            }
+
+            @Override
+            public int total() {
+                return totalPointsWon() + totalPointsLost();
+            }
+        };
     }
 
     public GuessCount merge(GuessCount other) {

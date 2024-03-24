@@ -28,9 +28,10 @@ public class PlayerService {
 
     public List<PlayerSummary> getAllSummary() {
         Collection<FullGame> allGames = statsFilesInfrastructure.readAllGames();
-        GuessCount totals = getTotals(allGames);
+        GuessCount guessTotals = getGuessTotals(allGames);
+        GamesCount gamesTotals = getGamesTotals(allGames);
         return getPlayerWithGames(allGames)
-                .map(playerCompleteData -> createSummary(playerCompleteData, totals))
+                .map(playerCompleteData -> createSummary(playerCompleteData, guessTotals, gamesTotals))
                 .sorted(Comparator.comparing(PlayerSummary::rating).reversed())
                 .toList();
     }
@@ -43,15 +44,16 @@ public class PlayerService {
                 .map(this::createDetails);
     }
 
-    public PlayerSummary createSummary(PlayerCompleteData playerCompleteData, GuessCount totals) {
+    public PlayerSummary createSummary(PlayerCompleteData playerCompleteData, GuessCount guessTotals, GamesCount gamesTotals) {
         List<PlayerResult> playerData = playerCompleteData.players().toList();
         List<SingleGuess> guesses = playerCompleteData.guesses().toList();
         return PlayerSummary.of(
                 playerCompleteData.name(),
                 resolveMainAvatar(playerData),
                 resolveSummaryGames(playerData),
+                gamesTotals,
                 resolveSummaryGuesses(guesses),
-                totals
+                guessTotals
         );
     }
 
@@ -83,11 +85,7 @@ public class PlayerService {
                 .map(e -> Map.entry(e.getKey(), sumCategory(e.getValue())))
                 .map(e -> PlayerDetails.Category.of(
                         e.getKey(),
-                        e.getValue().correct(),
-                        e.getValue().incorrect(),
-                        e.getValue().unanswered(),
-                        e.getValue().totalPointsWon(),
-                        e.getValue().totalPointsLost(),
+                        e.getValue(),
                         totals)
                 ).sorted(Comparator.comparing(PlayerDetails.Category::rating).reversed())
                 .toList();
@@ -173,18 +171,27 @@ public class PlayerService {
                 .orElseThrow();
     }
 
-    private PlayerSummary.Games resolveSummaryGames(List<PlayerResult> playerData) {
-        return new PlayerSummary.Games(playerData.size(), (int) playerData.stream().filter(PlayerResult::won).count());
+    private GamesCount resolveSummaryGames(List<PlayerResult> playerData) {
+        int wins = (int) playerData.stream().filter(PlayerResult::won).count();
+        return new GamesCount(wins, playerData.size() - wins);
     }
 
-    private PlayerSummary.Guesses resolveSummaryGuesses(List<SingleGuess> guesses) {
-        GuessCount guessCount = guesses.stream()
+    private GuessCount resolveSummaryGuesses(List<SingleGuess> guesses) {
+        return guesses.stream()
                 .map(SingleGuess::toGuessCount)
                 .reduce(GuessCount.EMPTY, GuessCount::merge);
-        return guessCount.toSummary();
     }
 
-    private GuessCount getTotals(Collection<FullGame> allGames) {
+    private GamesCount getGamesTotals(Collection<FullGame> allGames) {
+        int totalPlayers = (int) allGames.stream()
+                .map(FullGame::players)
+                .map(Map::values)
+                .mapToLong(Collection::size)
+                .sum();
+        return new GamesCount(allGames.size(), totalPlayers - allGames.size());
+    }
+
+    private GuessCount getGuessTotals(Collection<FullGame> allGames) {
         return allGames.stream()
                 .map(FullGame::questions)
                 .flatMap(Collection::stream)

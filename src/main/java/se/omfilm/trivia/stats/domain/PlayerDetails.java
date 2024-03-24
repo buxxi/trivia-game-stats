@@ -60,20 +60,14 @@ public record PlayerDetails(
             int totalPointsLost,
             BigDecimal rating
     ) {
+        private static final int MINIMUM_CATEGORY_POINTS_COUNT = 1000;
         private static final int MINIMUM_CATEGORY_GUESS_COUNT = 5;
 
-        public static Category of(String name, int correct, int incorrect, int unanswered, int totalPointsWon, int totalPointsLost, Percentable totals) {
-            //TODO: maybe have totalPoints won/lost as part of the rating?
-            BigDecimal rating = BayesianEstimate.calculate(new Percentable() {
-                public int count() {
-                    return correct;
-                }
-
-                public int total() {
-                    return correct + incorrect;
-                }
-            }, totals, MINIMUM_CATEGORY_GUESS_COUNT);
-            return new Category(name, correct, incorrect, unanswered, totalPointsWon, totalPointsLost, rating);
+        public static Category of(String name, GuessCount guessCount, GuessCount totals) {
+            BigDecimal guessRating = BayesianEstimate.calculate(guessCount.getGuessPercentable(), totals.getGuessPercentable(), MINIMUM_CATEGORY_GUESS_COUNT).multiply(new BigDecimal("0.75"));
+            BigDecimal pointsRating = BayesianEstimate.calculate(guessCount.getPointsPercentable(), totals.getPointsPercentable(), MINIMUM_CATEGORY_POINTS_COUNT).multiply(new BigDecimal("0.25"));
+            BigDecimal rating = pointsRating.add(guessRating);
+            return new Category(name, guessCount.correct(), guessCount.incorrect(), guessCount.unanswered(), guessCount.totalPointsWon(), guessCount.totalPointsLost(), rating);
         }
     }
 }
