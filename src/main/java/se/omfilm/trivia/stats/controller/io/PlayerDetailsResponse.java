@@ -33,7 +33,7 @@ public record PlayerDetailsResponse(
             BigDecimal percentage
     ) {
         public PlacementResponse(PlayerDetails.Placement placement) {
-            this(placement.place(), placement.total(), placement.percentage());
+            this(placement.place(), placement.count(), placement.percentage());
         }
     }
 
@@ -53,7 +53,7 @@ public record PlayerDetailsResponse(
                 BigDecimal percentage
         ) {
             public GuessResponse(PlayerDetails.Alternatives.Guess guess) {
-                this(guess.correct(), guess.incorrect(), BigDecimal.valueOf(guess.percentage()));
+                this(guess.correct(), guess.incorrect(), guess.percentage());
             }
         }
     }

@@ -2,11 +2,9 @@ package se.omfilm.trivia.stats.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import se.omfilm.trivia.stats.domain.PlayerDetails;
-import se.omfilm.trivia.stats.domain.PlayerSummary;
+import se.omfilm.trivia.stats.domain.*;
 import se.omfilm.trivia.stats.infrastructure.StatsFilesInfrastructure;
 import se.omfilm.trivia.stats.infrastructure.io.FullGame;
-import se.omfilm.trivia.stats.util.BayesianEstimate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -15,10 +13,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static se.omfilm.trivia.stats.domain.GuessOption.*;
+
 @Service
 public class PlayerService {
-    private static final int MINIMUM_GUESS_COUNT = 25;
-
     private final PlayerAliasService playerAliasService;
     private final StatsFilesInfrastructure statsFilesInfrastructure;
 
@@ -30,15 +28,9 @@ public class PlayerService {
 
     public List<PlayerSummary> getAllSummary() {
         Collection<FullGame> allGames = statsFilesInfrastructure.readAllGames();
-        PlayerSummary.Guesses totals = getTotals(allGames);
+        GuessCount totals = getTotals(allGames);
         return getPlayerWithGames(allGames)
-                .map(PlayerGamesData::createSummary)
-                .map(summary -> summary.withRating(BayesianEstimate.calculate(
-                        summary.guesses().percentage(),
-                        summary.guesses().total(),
-                        totals.percentage(),
-                        MINIMUM_GUESS_COUNT
-                )))
+                .map(gameData -> gameData.createSummary(totals))
                 .sorted(Comparator.comparing(PlayerSummary::rating).reversed())
                 .toList();
     }
@@ -51,17 +43,15 @@ public class PlayerService {
                 .map(playerGamesData -> playerGamesData.createDetails(playerAliasService));
     }
 
-    private PlayerSummary.Guesses getTotals(Collection<FullGame> allGames) {
+    private GuessCount getTotals(Collection<FullGame> allGames) {
         return allGames.stream()
                 .map(FullGame::questions)
                 .flatMap(Collection::stream)
                 .map(FullGame.Question::guesses)
                 .map(Map::values)
                 .flatMap(Collection::stream)
-                .map(guess -> new PlayerGuess(guess, null).toSummary())
-                .reduce(new PlayerSummary.Guesses(0, 0, 0),
-                        (a, b) -> new PlayerSummary.Guesses(a.correct() + b.correct(), a.incorrect() + b.incorrect(), a.unanswered() + b.unanswered())
-                );
+                .map(guess -> toSingleGuess(guess, null).toGuessCount())
+                .reduce(GuessCount.EMPTY, GuessCount::merge);
     }
 
     private Stream<PlayerGamesData> getPlayerWithGames(Collection<FullGame> allGames) {
@@ -73,7 +63,7 @@ public class PlayerService {
                             return new PlayerGamesData(
                                     playerAliasService.getMainName(player.name()).orElse(player.name()),
                                     Stream.of(player),
-                                    game.questions().stream().map(question -> new PlayerGuess(question.guesses().get(playerId), question.category()))
+                                    game.questions().stream().map(question -> toSingleGuess(question.guesses().get(playerId), question.category()))
                             );
                         })
                 ).collect(Collectors.toMap(
@@ -87,21 +77,29 @@ public class PlayerService {
                 )).values().stream();
     }
 
+    private SingleGuess toSingleGuess(FullGame.Question.Guess guess, String category) {
+        return new SingleGuess(GuessOption.valueOf(guess.guessed()), guess.correct(), guess.time(), guess.multiplier(), guess.points(), category);
+    }
+
     private record PlayerGamesData(String name,
                                    Stream<FullGame.Player> players,
-                                   Stream<PlayerGuess> guesses) {
+                                   Stream<SingleGuess> guesses) {
 
-        public static final int MINIMUM_CATEGORY_GUESS_COUNT = 5;
-
-        public PlayerSummary createSummary() {
+        public PlayerSummary createSummary(GuessCount totals) {
             List<FullGame.Player> playerData = this.players.toList();
-            List<PlayerGuess> guesses = this.guesses.toList();
-            return new PlayerSummary(name, resolveMainAvatar(playerData), resolveSummaryGames(playerData), BigDecimal.ZERO, resolveSummaryGuesses(guesses));
+            List<SingleGuess> guesses = this.guesses.toList();
+            return PlayerSummary.of(
+                    name,
+                    resolveMainAvatar(playerData),
+                    resolveSummaryGames(playerData),
+                    resolveSummaryGuesses(guesses),
+                    totals
+            );
         }
 
         public PlayerDetails createDetails(PlayerAliasService playerAliasService) {
             List<FullGame.Player> playerData = this.players.toList();
-            List<PlayerGuess> guesses = this.guesses.toList();
+            List<SingleGuess> guesses = this.guesses.toList();
 
             return new PlayerDetails(
                     name(),
@@ -115,83 +113,87 @@ public class PlayerService {
                     resolvePlacements(playerData),
                     resolveAlternatives(guesses),
                     resolveCategories(guesses)
-                );
+            );
         }
 
-        private List<PlayerDetails.Category> resolveCategories(List<PlayerGuess> guesses) {
-            PlayerDetails.Category totals = sumCategory(guesses);
+        private List<PlayerDetails.Category> resolveCategories(List<SingleGuess> guesses) {
+            GuessCount totals = sumCategory(guesses);
             return guesses.stream()
-                    .collect(Collectors.groupingBy(PlayerGuess::category))
-                    .values()
+                    .collect(Collectors.groupingBy(SingleGuess::category))
+                    .entrySet()
                     .stream()
-                    .map(this::sumCategory)
-                    .map(category -> category.withRating(BayesianEstimate.calculate(
-                            category.percentage(),
-                            category.total(),
-                            totals.percentage(),
-                            MINIMUM_CATEGORY_GUESS_COUNT
-                    )))
-                    .sorted(Comparator.comparing(PlayerDetails.Category::rating).thenComparing(c -> c.totalPointsWon() - c.totalPointsLost()).reversed())
+                    .map(e -> Map.entry(e.getKey(), sumCategory(e.getValue())))
+                    .map(e -> PlayerDetails.Category.of(
+                            e.getKey(),
+                            e.getValue().correct(),
+                            e.getValue().incorrect(),
+                            e.getValue().unanswered(),
+                            e.getValue().totalPointsWon(),
+                            e.getValue().totalPointsLost(),
+                            totals)
+                    ).sorted(Comparator.comparing(PlayerDetails.Category::rating).reversed())
                     .toList();
         }
 
-        private PlayerDetails.Category sumCategory(List<PlayerGuess> value) {
+        private GuessCount sumCategory(List<SingleGuess> value) {
             return value.stream()
-                    .map(PlayerGuess::toCategoryDetails)
-                    .reduce(
-                            new PlayerDetails.Category(null, 0, 0, 0, 0, 0, BigDecimal.ZERO),
-                            (a, b) -> new PlayerDetails.Category(b.name(), a.correct() + b.correct(), a.incorrect() + b.incorrect(), a.unanswered() + b.unanswered(), a.totalPointsWon() + b.totalPointsWon(), a.totalPointsLost() + b.totalPointsLost(), BigDecimal.ZERO)
-                    );
+                    .map(SingleGuess::toGuessCount)
+                    .reduce(GuessCount.EMPTY, GuessCount::merge);
         }
 
-        private PlayerDetails.Alternatives resolveAlternatives(List<PlayerGuess> guesses) {
-            Map<String, PlayerDetails.Alternatives.Guess> guessMap = guesses.stream()
+        private PlayerDetails.Alternatives resolveAlternatives(List<SingleGuess> guesses) {
+            Map<GuessOption, GuessCount> guessMap = guesses.stream()
                     .collect(Collectors.toMap(
-                            PlayerGuess::guessed,
-                            (PlayerGuess guess) -> new PlayerDetails.Alternatives.Guess(guess.isCorrect() ? 1 : 0, guess.isIncorrect() ? 1 : 0),
-                            (a, b) -> new PlayerDetails.Alternatives.Guess(a.correct() + b.correct(), a.incorrect() + b.incorrect())
+                            SingleGuess::guessed,
+                            SingleGuess::toGuessCount,
+                            GuessCount::merge
                     ));
-            return new PlayerDetails.Alternatives(guessMap.get("A"), guessMap.get("B"), guessMap.get("C"), guessMap.get("D"));
+            return new PlayerDetails.Alternatives(
+                    guessMap.get(A).toDetails(),
+                    guessMap.get(B).toDetails(),
+                    guessMap.get(C).toDetails(),
+                    guessMap.get(D).toDetails()
+            );
         }
 
         private List<PlayerDetails.Placement> resolvePlacements(List<FullGame.Player> playerData) {
             return playerData.stream()
-                    .collect(Collectors.toMap(FullGame.Player::place, (player) ->1, Integer::sum))
+                    .collect(Collectors.toMap(FullGame.Player::place, (player) -> 1, Integer::sum))
                     .entrySet()
                     .stream()
-                    .map(e -> new PlayerDetails.Placement(e.getKey(), e.getValue(), new BigDecimal(e.getValue()).setScale(2, RoundingMode.UP).divide(new BigDecimal(playerData.size()), RoundingMode.UP).multiply(new BigDecimal(100))))
+                    .map(e -> new PlayerDetails.Placement(e.getKey(), e.getValue(), playerData.size()))
                     .toList();
 
         }
 
-        private BigDecimal resolveAverageMultiplier(List<PlayerGuess> guesses) {
+        private BigDecimal resolveAverageMultiplier(List<SingleGuess> guesses) {
             return guesses.stream()
-                    .map(guess ->  new BigDecimal(guess.multiplier()))
+                    .map(guess -> new BigDecimal(guess.multiplier()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
                     .setScale(2, RoundingMode.DOWN)
                     .divide(new BigDecimal(guesses.size()), RoundingMode.DOWN);
         }
 
-        private int resolveTotalPoints(List<PlayerGuess> guesses, Boolean correct) {
+        private int resolveTotalPoints(List<SingleGuess> guesses, Boolean correct) {
             return Math.abs(guesses.stream()
                     .filter(guess -> correct.equals(guess.correct()))
-                    .mapToInt(PlayerGuess::points)
+                    .mapToInt(SingleGuess::points)
                     .sum());
         }
 
-        private BigDecimal resolveAverageTime(List<PlayerGuess> guesses) {
+        private BigDecimal resolveAverageTime(List<SingleGuess> guesses) {
             return guesses.stream()
                     .filter(guess -> Boolean.TRUE.equals(guess.correct()))
-                    .map(PlayerGuess::time)
+                    .map(SingleGuess::time)
                     .reduce(BigDecimal.ZERO, BigDecimal::add)
                     .setScale(2, RoundingMode.UP)
                     .divide(new BigDecimal(guesses.size()), RoundingMode.UP);
         }
 
-        private BigDecimal resolveMinTime(List<PlayerGuess> guesses) {
+        private BigDecimal resolveMinTime(List<SingleGuess> guesses) {
             return guesses.stream()
                     .filter(guess -> Boolean.TRUE.equals(guess.correct()))
-                    .map(PlayerGuess::time)
+                    .map(SingleGuess::time)
                     .min(BigDecimal::compareTo)
                     .orElse(BigDecimal.ZERO)
                     .setScale(2, RoundingMode.UP);
@@ -202,7 +204,7 @@ public class PlayerService {
                     .collect(Collectors.toMap(FullGame.Player::avatar, (player) -> 1, Integer::sum))
                     .entrySet()
                     .stream()
-                    .map(e -> new PlayerDetails.AvatarUsage(e.getKey(), new BigDecimal(e.getValue()).divide(new BigDecimal(playerData.size()), RoundingMode.UP).multiply(new BigDecimal(100))))
+                    .map(e -> new PlayerDetails.AvatarUsage(e.getKey(), e.getValue(), playerData.size()))
                     .toList();
         }
 
@@ -210,10 +212,11 @@ public class PlayerService {
             return new PlayerSummary.Games(playerData.size(), (int) playerData.stream().filter(gameData -> gameData.place() == 1).count());
         }
 
-        private PlayerSummary.Guesses resolveSummaryGuesses(List<PlayerGuess> guesses) {
-            int correct = (int) guesses.stream().filter(PlayerGuess::isCorrect).count();
-            int incorrect = (int) guesses.stream().filter(PlayerGuess::isIncorrect).count();
-            return new PlayerSummary.Guesses(correct, incorrect, guesses.size() - correct - incorrect);
+        private PlayerSummary.Guesses resolveSummaryGuesses(List<SingleGuess> guesses) {
+            GuessCount guessCount = guesses.stream()
+                    .map(SingleGuess::toGuessCount)
+                    .reduce(GuessCount.EMPTY, GuessCount::merge);
+            return guessCount.toSummary();
         }
 
         private String resolveMainAvatar(List<FullGame.Player> playerData) {
@@ -228,32 +231,4 @@ public class PlayerService {
         }
     }
 
-    private record PlayerGuess(
-            String guessed,
-            Boolean correct,
-            BigDecimal time,
-            int multiplier,
-            int points,
-            String category
-    ) {
-        public PlayerGuess(FullGame.Question.Guess guess, String category) {
-            this(guess.guessed(), guess.correct(), guess.time(), guess.multiplier(), guess.points(), category);
-        }
-
-        public PlayerSummary.Guesses toSummary() {
-            return new PlayerSummary.Guesses(isCorrect() ? 1 : 0, isIncorrect() ? 1 : 0, !isCorrect() && !isIncorrect() ? 1 : 0);
-        }
-
-        public PlayerDetails.Category toCategoryDetails() {
-            return new PlayerDetails.Category(category(), isCorrect() ? 1 : 0, isIncorrect() ? 1 : 0, !isCorrect() && !isIncorrect() ? 1 : 0, isCorrect() ? points() : 0, isIncorrect() ? Math.abs(points()) : 0, BigDecimal.ZERO);
-        }
-
-        private boolean isIncorrect() {
-            return Boolean.FALSE.equals(correct());
-        }
-
-        private boolean isCorrect() {
-            return Boolean.TRUE.equals(correct());
-        }
-    }
 }

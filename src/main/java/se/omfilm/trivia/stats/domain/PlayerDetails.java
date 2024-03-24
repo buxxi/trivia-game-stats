@@ -1,5 +1,7 @@
 package se.omfilm.trivia.stats.domain;
 
+import se.omfilm.trivia.stats.util.BayesianEstimate;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -18,15 +20,16 @@ public record PlayerDetails(
 ) {
     public record AvatarUsage(
             String name,
-            BigDecimal percentage
-    ) {
+            int count,
+            int total
+    ) implements Percentable {
     }
 
     public record Placement(
             int place,
-            int total,
-            BigDecimal percentage
-    ) {}
+            int count,
+            int total
+    ) implements Percentable {}
 
     public record Alternatives(
             Guess a,
@@ -37,13 +40,13 @@ public record PlayerDetails(
         public record Guess(
                 int correct,
                 int incorrect
-        ) {
-            public long total() {
-                return correct + incorrect;
+        ) implements Percentable {
+            public int count() {
+                return correct;
             }
 
-            public float percentage() {
-                return (correct / (float) total()) * 100;
+            public int total() {
+                return correct + incorrect;
             }
         }
     }
@@ -57,16 +60,20 @@ public record PlayerDetails(
             int totalPointsLost,
             BigDecimal rating
     ) {
-        public Category withRating(BigDecimal rating) {
-            return new Category(this.name(), this.correct(), this.incorrect(), this.unanswered(), this.totalPointsWon(), this.totalPointsLost(), rating);
-        }
+        private static final int MINIMUM_CATEGORY_GUESS_COUNT = 5;
 
-        public long total() {
-            return correct + incorrect;
-        }
+        public static Category of(String name, int correct, int incorrect, int unanswered, int totalPointsWon, int totalPointsLost, Percentable totals) {
+            //TODO: maybe have totalPoints won/lost as part of the rating?
+            BigDecimal rating = BayesianEstimate.calculate(new Percentable() {
+                public int count() {
+                    return correct;
+                }
 
-        public float percentage() {
-            return (correct / (float) total()) * 100;
+                public int total() {
+                    return correct + incorrect;
+                }
+            }, totals, MINIMUM_CATEGORY_GUESS_COUNT);
+            return new Category(name, correct, incorrect, unanswered, totalPointsWon, totalPointsLost, rating);
         }
     }
 }
