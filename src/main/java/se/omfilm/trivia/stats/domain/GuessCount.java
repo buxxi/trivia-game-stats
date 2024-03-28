@@ -1,5 +1,7 @@
 package se.omfilm.trivia.stats.domain;
 
+import se.omfilm.trivia.stats.controller.io.CategorySummaryResponse;
+
 public record GuessCount(
         int correct,
         int incorrect,
@@ -51,5 +53,9 @@ public record GuessCount(
 
     public PlayerSummary.Guesses toSummary() {
         return new PlayerSummary.Guesses(correct(), incorrect(), unanswered());
+    }
+
+    public CategorySummaryResponse.CategoryGuessesResponse toCategorySummary() {
+        return new CategorySummaryResponse.CategoryGuessesResponse(correct(), incorrect(), unanswered());
     }
 }
