@@ -17,10 +17,12 @@ import java.util.List;
 @Service
 public class GamesService {
     private final StatsFilesInfrastructure statsFilesInfrastructure;
+    private final PlayerAliasService playerAliasService;
 
     @Autowired
-    public GamesService(StatsFilesInfrastructure statsFilesInfrastructure) {
+    public GamesService(StatsFilesInfrastructure statsFilesInfrastructure, PlayerAliasService playerAliasService) {
         this.statsFilesInfrastructure = statsFilesInfrastructure;
+        this.playerAliasService = playerAliasService;
     }
 
     public List<GameSummary> getAllSummary() {
@@ -41,7 +43,7 @@ public class GamesService {
         GameSummary.GameSummaryWinner winner = fullGame.players().values().stream()
                 .filter(p -> p.place() == 1)
                 .findFirst()
-                .map(p -> new GameSummary.GameSummaryWinner(p.name(), p.avatar(), p.points()))
+                .map(p -> new GameSummary.GameSummaryWinner(playerAliasService.getMainName(p.name()).orElse(p.name()), p.avatar(), p.points()))
                 .orElseThrow(); //TODO: what do to, skip entire game if no players?
         return new GameSummary(
                 fullGame.uuid(),
