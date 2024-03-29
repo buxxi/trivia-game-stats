@@ -8,7 +8,7 @@ import java.math.RoundingMode;
 public class BayesianEstimate {
     public static BigDecimal calculate(Percentable current, Percentable totals, int minimumCount) {
         float percentage = current.percentage().floatValue();
-        return calculate(percentage, current.count(), totals.percentage().floatValue(), minimumCount);
+        return calculate(percentage, current.total(), totals.percentage().floatValue(), minimumCount);
     }
 
     public static BigDecimal calculate(float percentage, long count, float averagePercentage, long minimumCount) {
