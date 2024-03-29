@@ -7,22 +7,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import se.omfilm.trivia.stats.controller.io.GameDetailsResponse;
 import se.omfilm.trivia.stats.controller.io.GameSummaryResponse;
-import se.omfilm.trivia.stats.infrastructure.StatsFilesInfrastructure;
+import se.omfilm.trivia.stats.service.GamesService;
 
 import java.util.List;
 
 @RestController
 public class GamesController {
-    private final StatsFilesInfrastructure statsFilesInfrastructure;
+    private final GamesService gamesService;
 
     @Autowired
-    public GamesController(StatsFilesInfrastructure statsFilesInfrastructure) {
-        this.statsFilesInfrastructure = statsFilesInfrastructure;
+    public GamesController(GamesService gamesService) {
+        this.gamesService = gamesService;
     }
 
     @GetMapping(value = "/games", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<GameSummaryResponse> getAllGames() {
-        throw new UnsupportedOperationException("Not implemented"); //TODO
+        return gamesService.getAllSummary().stream().map(GameSummaryResponse::new).toList();
     }
 
     @GetMapping(value = "/games/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
