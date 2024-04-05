@@ -78,7 +78,7 @@ public record FullGame(
             @JsonProperty("question")
             String question,
             @JsonProperty("answers")
-            List<String> answers,
+            Map<String, String> answers,
             @JsonProperty("correct")
             String correct,
             @JsonProperty("guesses")
