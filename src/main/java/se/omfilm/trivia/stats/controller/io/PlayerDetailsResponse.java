@@ -1,5 +1,6 @@
 package se.omfilm.trivia.stats.controller.io;
 
+import se.omfilm.trivia.stats.domain.GuessCount;
 import se.omfilm.trivia.stats.domain.PlayerDetails;
 
 import java.math.BigDecimal;
@@ -52,8 +53,8 @@ public record PlayerDetailsResponse(
                 int incorrect,
                 BigDecimal percentage
         ) {
-            public GuessResponse(PlayerDetails.Alternatives.Guess guess) {
-                this(guess.correct(), guess.incorrect(), guess.percentage());
+            public GuessResponse(GuessCount guess) {
+                this(guess.correct(), guess.incorrect(), guess.getGuessPercentable().percentage());
             }
         }
     }
@@ -68,7 +69,7 @@ public record PlayerDetailsResponse(
             BigDecimal rating
     ) {
         public CategoryResponse(PlayerDetails.Category category) {
-            this(category.name(), category.correct(), category.incorrect(), category.unanswered(), category.totalPointsWon(), category.totalPointsLost(), category.rating());
+            this(category.name(), category.count().correct(), category.count().incorrect(), category.count().unanswered(), category.count().totalPointsWon(), category.count().totalPointsLost(), category.rating());
         }
     }
 
@@ -79,8 +80,8 @@ public record PlayerDetailsResponse(
                 details.avatars().stream().map(AvatarResponse::new).toList(),
                 details.fastestTime(),
                 details.averageTime(),
-                details.totalPointsWon(),
-                details.totalPointsLost(),
+                details.totals().totalPointsWon(),
+                details.totals().totalPointsLost(),
                 details.averageMultiplier(),
                 details.placements().stream().map(PlacementResponse::new).toList(),
                 new AlternativesResponse(details.alternatives()),

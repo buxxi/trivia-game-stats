@@ -11,8 +11,7 @@ public record PlayerDetails(
         List<AvatarUsage> avatars,
         BigDecimal fastestTime,
         BigDecimal averageTime,
-        int totalPointsWon,
-        int totalPointsLost,
+        GuessCount totals,
         BigDecimal averageMultiplier,
         List<Placement> placements,
         Alternatives alternatives,
@@ -32,32 +31,15 @@ public record PlayerDetails(
     ) implements Percentable {}
 
     public record Alternatives(
-            Guess a,
-            Guess b,
-            Guess c,
-            Guess d
-    ) {
-        public record Guess(
-                int correct,
-                int incorrect
-        ) implements Percentable {
-            public int count() {
-                return correct;
-            }
-
-            public int total() {
-                return correct + incorrect;
-            }
-        }
-    }
+            GuessCount a,
+            GuessCount b,
+            GuessCount c,
+            GuessCount d
+    ) { }
 
     public record Category(
             String name,
-            int correct,
-            int incorrect,
-            int unanswered,
-            int totalPointsWon,
-            int totalPointsLost,
+            GuessCount count,
             BigDecimal rating
     ) {
         private static final int MINIMUM_CATEGORY_POINTS_COUNT = 1000;
@@ -67,7 +49,7 @@ public record PlayerDetails(
             BigDecimal guessRating = BayesianEstimate.calculate(guessCount.getGuessPercentable(), totals.getGuessPercentable(), MINIMUM_CATEGORY_GUESS_COUNT).multiply(new BigDecimal("0.75"));
             BigDecimal pointsRating = BayesianEstimate.calculate(guessCount.getPointsPercentable(), totals.getPointsPercentable(), MINIMUM_CATEGORY_POINTS_COUNT).multiply(new BigDecimal("0.25"));
             BigDecimal rating = pointsRating.add(guessRating);
-            return new Category(name, guessCount.correct(), guessCount.incorrect(), guessCount.unanswered(), guessCount.totalPointsWon(), guessCount.totalPointsLost(), rating);
+            return new Category(name, guessCount, rating);
         }
     }
 }

@@ -67,8 +67,7 @@ public class PlayerService {
                 resolveDetailsAvatars(playerData),
                 resolveMinTime(guesses),
                 resolveAverageTime(guesses),
-                resolveTotalPoints(guesses, Boolean.TRUE),
-                resolveTotalPoints(guesses, Boolean.FALSE),
+                resolveTotalPoints(guesses),
                 resolveAverageMultiplier(guesses),
                 resolvePlacements(playerData),
                 resolveAlternatives(guesses),
@@ -105,10 +104,10 @@ public class PlayerService {
                         GuessCount::merge
                 ));
         return new PlayerDetails.Alternatives(
-                guessMap.get(A).toDetails(),
-                guessMap.get(B).toDetails(),
-                guessMap.get(C).toDetails(),
-                guessMap.get(D).toDetails()
+                guessMap.get(A),
+                guessMap.get(B),
+                guessMap.get(C),
+                guessMap.get(D)
         );
     }
 
@@ -130,11 +129,10 @@ public class PlayerService {
                 .divide(new BigDecimal(guesses.size()), RoundingMode.DOWN);
     }
 
-    private int resolveTotalPoints(List<SingleGuess> guesses, Boolean correct) {
-        return Math.abs(guesses.stream()
-                .filter(guess -> correct.equals(guess.correct()))
-                .mapToInt(SingleGuess::points)
-                .sum());
+    private GuessCount resolveTotalPoints(List<SingleGuess> guesses) {
+        return guesses.stream()
+                .map(SingleGuess::toGuessCount)
+                .reduce(GuessCount.EMPTY, GuessCount::merge);
     }
 
     private BigDecimal resolveAverageTime(List<SingleGuess> guesses) {
