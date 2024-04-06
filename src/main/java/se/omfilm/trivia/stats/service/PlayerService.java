@@ -44,7 +44,7 @@ public class PlayerService {
                 .map(this::createDetails);
     }
 
-    public PlayerSummary createSummary(PlayerCompleteData playerCompleteData, GuessCount guessTotals, GamesCount gamesTotals) {
+    private PlayerSummary createSummary(PlayerCompleteData playerCompleteData, GuessCount guessTotals, GamesCount gamesTotals) {
         List<PlayerResult> playerData = playerCompleteData.players().toList();
         List<SingleGuess> guesses = playerCompleteData.guesses().toList();
         return PlayerSummary.of(
@@ -57,7 +57,7 @@ public class PlayerService {
         );
     }
 
-    public PlayerDetails createDetails(PlayerCompleteData playerCompleteData) {
+    private PlayerDetails createDetails(PlayerCompleteData playerCompleteData) {
         List<PlayerResult> playerData = playerCompleteData.players().toList();
         List<SingleGuess> guesses = playerCompleteData.guesses().toList();
 
@@ -215,11 +215,7 @@ public class PlayerService {
                 ).collect(Collectors.toMap(
                         PlayerCompleteData::name,
                         Function.identity(),
-                        (data1, data2) -> new PlayerCompleteData(
-                                data1.name(),
-                                Stream.concat(data1.players(), data2.players()),
-                                Stream.concat(data1.guesses(), data2.guesses())
-                        )
+                        PlayerCompleteData::merge
                 )).values().stream();
     }
 
@@ -231,5 +227,13 @@ public class PlayerService {
             String name,
             Stream<PlayerResult> players,
             Stream<SingleGuess> guesses) {
+
+        public PlayerCompleteData merge(PlayerCompleteData input) {
+            return new PlayerCompleteData(
+                    name(),
+                    Stream.concat(players(), input.players()),
+                    Stream.concat(guesses(), input.guesses())
+            );
+        }
     }
 }
