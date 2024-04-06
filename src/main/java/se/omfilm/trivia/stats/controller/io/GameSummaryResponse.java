@@ -1,6 +1,7 @@
 package se.omfilm.trivia.stats.controller.io;
 
 import se.omfilm.trivia.stats.domain.GameSummary;
+import se.omfilm.trivia.stats.domain.PlayerResult;
 
 import java.time.ZonedDateTime;
 
@@ -22,7 +23,7 @@ public record GameSummaryResponse(
             String avatar,
             int points
     ) {
-        public GameSummaryWinnerResponse(GameSummary.GameSummaryWinner winner) {
+        public GameSummaryWinnerResponse(PlayerResult winner) {
             this(winner.name(), winner.avatar(), winner.points());
         }
     }

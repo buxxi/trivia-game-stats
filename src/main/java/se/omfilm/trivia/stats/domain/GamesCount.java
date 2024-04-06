@@ -13,8 +13,4 @@ public record GamesCount(
     public int total() {
         return wins() + losses();
     }
-
-    public PlayerSummary.Games toGamesSummary() {
-        return new PlayerSummary.Games(total(), wins());
-    }
 }

@@ -208,7 +208,7 @@ public class PlayerService {
                             String playerId = entry.getKey();
                             return new PlayerCompleteData(
                                     playerAliasService.getMainName(player.name()).orElse(player.name()),
-                                    Stream.of(new PlayerResult(player.name(), player.avatar(), player.place())),
+                                    Stream.of(new PlayerResult(player.name(), player.avatar(), player.place(), player.points())),
                                     game.questions().stream().map(question -> toSingleGuess(question.guesses().get(playerId), question.category()))
                             );
                         })
@@ -227,4 +227,9 @@ public class PlayerService {
         return new SingleGuess(GuessOption.valueOf(guess.guessed()), guess.correct(), guess.time(), guess.multiplier(), guess.points(), category);
     }
 
+    private record PlayerCompleteData(
+            String name,
+            Stream<PlayerResult> players,
+            Stream<SingleGuess> guesses) {
+    }
 }

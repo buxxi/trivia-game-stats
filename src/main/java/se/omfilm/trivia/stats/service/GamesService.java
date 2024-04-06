@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import se.omfilm.trivia.stats.domain.GameDetails;
 import se.omfilm.trivia.stats.domain.GameSummary;
 import se.omfilm.trivia.stats.domain.GuessOption;
+import se.omfilm.trivia.stats.domain.PlayerResult;
 import se.omfilm.trivia.stats.infrastructure.StatsFilesInfrastructure;
 import se.omfilm.trivia.stats.infrastructure.io.FullGame;
 
@@ -50,9 +51,9 @@ public class GamesService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         ZonedDateTime started = fullGame.started().truncatedTo(ChronoUnit.SECONDS).atZone(ZoneId.of("Europe/Stockholm"));
         Duration duration = Duration.between(fullGame.started(), fullGame.ended());
-        List<GameDetails.GamePlayerDetails> players = fullGame.players().values().stream()
-                .map(this::toDetails)
-                .sorted(Comparator.comparing(GameDetails.GamePlayerDetails::place))
+        List<PlayerResult> players = fullGame.players().values().stream()
+                .map(this::toPlayerResult)
+                .sorted(Comparator.comparing(PlayerResult::place))
                 .toList();
         List<GameDetails.GameQuestionDetails> questions = fullGame.questions().stream()
                 .map(question -> toDetails(question, playerIdToName))
@@ -60,8 +61,8 @@ public class GamesService {
         return new GameDetails(started, duration, players, questions);
     }
 
-    private GameDetails.GamePlayerDetails toDetails(FullGame.Player player) {
-        return new GameDetails.GamePlayerDetails(player.name(), player.avatar(), player.points(), player.place());
+    private PlayerResult toPlayerResult(FullGame.Player player) {
+        return new PlayerResult(player.name(), player.avatar(), player.place(), player.points());
     }
 
     private GameDetails.GameQuestionDetails toDetails(FullGame.Question question, Map<String, String> playerIdToName) {
@@ -93,10 +94,10 @@ public class GamesService {
         ZonedDateTime started = fullGame.started().truncatedTo(ChronoUnit.SECONDS).atZone(ZoneId.of("Europe/Stockholm"));
         Duration duration = Duration.between(fullGame.started(), fullGame.ended());
         GameSummary.GameSummaryCategories categories = new GameSummary.GameSummaryCategories(categoriesUsed, categoriesSelected);
-        GameSummary.GameSummaryWinner winner = fullGame.players().values().stream()
+        PlayerResult winner = fullGame.players().values().stream()
                 .filter(p -> p.place() == 1)
                 .findFirst()
-                .map(p -> new GameSummary.GameSummaryWinner(playerAliasService.getMainName(p.name()).orElse(p.name()), p.avatar(), p.points()))
+                .map(p -> new PlayerResult(playerAliasService.getMainName(p.name()).orElse(p.name()), p.avatar(), p.place(), p.points()))
                 .orElseThrow(); //TODO: what do to, skip entire game if no players?
         return new GameSummary(
                 fullGame.uuid(),

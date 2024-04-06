@@ -7,16 +7,9 @@ import java.util.List;
 public record GameDetails(
         ZonedDateTime started,
         Duration duration,
-        List<GamePlayerDetails> players,
+        List<PlayerResult> players,
         List<GameQuestionDetails> question
 ) {
-    public record GamePlayerDetails(
-            String name,
-            String avatar,
-            int points,
-            int place
-    ) {}
-
     public record GameQuestionDetails(
         String category,
         String question,

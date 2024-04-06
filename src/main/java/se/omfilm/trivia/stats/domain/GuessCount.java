@@ -47,10 +47,6 @@ public record GuessCount(
         );
     }
 
-    public PlayerSummary.Guesses toSummary() {
-        return new PlayerSummary.Guesses(correct(), incorrect(), unanswered());
-    }
-
     public CategorySummaryResponse.CategoryGuessesResponse toCategorySummary() {
         return new CategorySummaryResponse.CategoryGuessesResponse(correct(), incorrect(), unanswered());
     }

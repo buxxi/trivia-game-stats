@@ -10,15 +10,8 @@ public record GameSummary(
         GameSummaryCategories categories,
         ZonedDateTime started,
         Duration duration,
-        GameSummaryWinner winner
+        PlayerResult winner
 ) {
-    public record GameSummaryWinner(
-            String name,
-            String avatar,
-            int points
-    ) {
-    }
-
     public record GameSummaryCategories(
             int used,
             int selected
