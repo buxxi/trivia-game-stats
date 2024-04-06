@@ -28,7 +28,11 @@ public record PlayerDetails(
             int place,
             int count,
             int total
-    ) implements Percentable {}
+    ) implements Percentable {
+        public boolean won() {
+            return place == 1;
+        }
+    }
 
     public record Alternatives(
             GuessCount a,

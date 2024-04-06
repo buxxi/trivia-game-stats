@@ -31,7 +31,8 @@ public class PlayerService {
         GuessCount guessTotals = getGuessTotals(allGames);
         GamesCount gamesTotals = getGamesTotals(allGames);
         return getPlayerWithGames(allGames)
-                .map(playerCompleteData -> createSummary(playerCompleteData, guessTotals, gamesTotals))
+                .map(this::createDetails)
+                .map(details -> PlayerSummary.from(details, gamesTotals, guessTotals))
                 .sorted(Comparator.comparing(PlayerSummary::rating).reversed())
                 .toList();
     }
@@ -42,19 +43,6 @@ public class PlayerService {
                 .filter(data -> data.name().equals(name))
                 .findAny()
                 .map(this::createDetails);
-    }
-
-    private PlayerSummary createSummary(PlayerCompleteData playerCompleteData, GuessCount guessTotals, GamesCount gamesTotals) {
-        List<PlayerResult> playerData = playerCompleteData.players().toList();
-        List<SingleGuess> guesses = playerCompleteData.guesses().toList();
-        return PlayerSummary.of(
-                playerCompleteData.name(),
-                resolveMainAvatar(playerData),
-                resolveSummaryGames(playerData),
-                gamesTotals,
-                resolveSummaryGuesses(guesses),
-                guessTotals
-        );
     }
 
     private PlayerDetails createDetails(PlayerCompleteData playerCompleteData) {
@@ -160,24 +148,6 @@ public class PlayerService {
                 .stream()
                 .map(e -> new PlayerDetails.AvatarUsage(e.getKey(), e.getValue().intValue(), playerData.size()))
                 .toList();
-    }
-
-    private String resolveMainAvatar(List<PlayerResult> playerData) {
-        return resolveDetailsAvatars(playerData).stream()
-                .max(Comparator.comparing(PlayerDetails.AvatarUsage::count))
-                .map(PlayerDetails.AvatarUsage::name)
-                .orElseThrow();
-    }
-
-    private GamesCount resolveSummaryGames(List<PlayerResult> playerData) {
-        int wins = (int) playerData.stream().filter(PlayerResult::won).count();
-        return new GamesCount(wins, playerData.size() - wins);
-    }
-
-    private GuessCount resolveSummaryGuesses(List<SingleGuess> guesses) {
-        return guesses.stream()
-                .map(SingleGuess::toGuessCount)
-                .reduce(GuessCount.EMPTY, GuessCount::merge);
     }
 
     private GamesCount getGamesTotals(Collection<FullGame> allGames) {
