@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 public record GameDetails(
+        String id,
         ZonedDateTime started,
         Duration duration,
         List<PlayerResult> players,

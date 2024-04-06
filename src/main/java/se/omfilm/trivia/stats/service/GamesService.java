@@ -33,7 +33,8 @@ public class GamesService {
 
     public List<GameSummary> getAllSummary() {
         return statsFilesInfrastructure.readAllGames().stream()
-                .map(this::toSummary)
+                .map(this::toDetails)
+                .map(GameSummary::from)
                 .sorted(Comparator.comparing(GameSummary::started).reversed())
                 .toList();
     }
@@ -58,7 +59,7 @@ public class GamesService {
         List<GameDetails.GameQuestionDetails> questions = fullGame.questions().stream()
                 .map(question -> toDetails(question, playerIdToName))
                 .toList();
-        return new GameDetails(started, duration, players, questions);
+        return new GameDetails(fullGame.uuid(), started, duration, players, questions);
     }
 
     private PlayerResult toPlayerResult(FullGame.Player player) {
@@ -84,29 +85,5 @@ public class GamesService {
                 .filter(guess -> GuessOption.valueOf(guess.getValue().guessed()) == option)
                 .map(guess -> playerIdToName.get(guess.getKey()))
                 .toList();
-    }
-
-    private GameSummary toSummary(FullGame fullGame) {
-        int players = fullGame.players().size();
-        int questions = fullGame.questions().size();
-        int categoriesSelected = (int) fullGame.config().categories().values().stream().filter(b -> b.equals(Boolean.TRUE)).count();
-        int categoriesUsed = (int) fullGame.questions().stream().map(FullGame.Question::category).distinct().count();
-        ZonedDateTime started = fullGame.started().truncatedTo(ChronoUnit.SECONDS).atZone(ZoneId.of("Europe/Stockholm"));
-        Duration duration = Duration.between(fullGame.started(), fullGame.ended());
-        GameSummary.GameSummaryCategories categories = new GameSummary.GameSummaryCategories(categoriesUsed, categoriesSelected);
-        PlayerResult winner = fullGame.players().values().stream()
-                .filter(p -> p.place() == 1)
-                .findFirst()
-                .map(p -> new PlayerResult(playerAliasService.getMainName(p.name()).orElse(p.name()), p.avatar(), p.place(), p.points()))
-                .orElseThrow(); //TODO: what do to, skip entire game if no players?
-        return new GameSummary(
-                fullGame.uuid(),
-                players,
-                questions,
-                categories,
-                started,
-                duration,
-                winner
-        );
     }
 }
