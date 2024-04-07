@@ -13,6 +13,7 @@ import se.omfilm.trivia.stats.service.PlayerService;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/v1/players")
 public class PlayerController {
     private final PlayerService playerService;
     private final PlayerAliasService playerAliasService;
@@ -23,24 +24,24 @@ public class PlayerController {
         this.playerAliasService = playerAliasService;
     }
 
-    @GetMapping(value = "/players", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<PlayerSummaryResponse> getAllPlayers() {
         return playerService.getAllSummary().stream().map(PlayerSummaryResponse::new).toList();
     }
 
-    @GetMapping(value = "/players/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_JSON_VALUE)
     public PlayerDetailsResponse getPlayerDetails(@PathVariable("name") String name) {
         return playerService.getPlayerDetails(name)
                 .map(PlayerDetailsResponse::new)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No player with name: " + name));
     }
 
-    @PutMapping(value = "/players/{name}/alias")
+    @PutMapping(value = "/{name}/alias")
     public void addAlias(@PathVariable("name") String name, @RequestBody List<String> aliases) {
         playerAliasService.addAliases(name, aliases);
     }
 
-    @DeleteMapping(value = "/players/{name}/alias")
+    @DeleteMapping(value = "/{name}/alias")
     public void deleteAlias(@PathVariable("name") String name, @RequestBody List<String> aliases) {
         playerAliasService.removeAliases(name, aliases);
     }

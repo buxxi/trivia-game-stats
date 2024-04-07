@@ -3,6 +3,7 @@ package se.omfilm.trivia.stats.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import se.omfilm.trivia.stats.controller.io.StatisticsResponse;
 import se.omfilm.trivia.stats.domain.CategorySummary;
@@ -16,6 +17,7 @@ import java.time.Duration;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/v1/statistics")
 public class StatisticsController {
     private final GamesService gamesService;
     private final PlayerService playerService;
@@ -28,7 +30,7 @@ public class StatisticsController {
         this.categoriesService = categoriesService;
     }
 
-    @GetMapping(value = "/statistics", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public StatisticsResponse getTotals() {
         List<GameSummary> games = gamesService.getAllSummary();
         List<PlayerSummary> players = playerService.getAllSummary();
