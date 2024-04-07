@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>se.omfilm</groupId>
-	<artifactId>trivia-game-stats-backend</artifactId>
+	<artifactId>trivia-game-stats</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>trivia-game-stats-backend</name>
 	<description>Backend for the stats to my trivia game</description>
