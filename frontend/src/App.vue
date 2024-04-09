@@ -1,16 +1,20 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView } from 'vue-router';
+import 'materialize-css/dist/css/materialize.min.css';
 </script>
 
 <template>
   <header>
-    <nav>
-      <RouterLink to="/">Start</RouterLink>
-      <RouterLink to="/players">Players</RouterLink>
-      <RouterLink to="/categories">Categories</RouterLink>
-      <RouterLink to="/games">Games</RouterLink>
+    <nav class="blue">
+      <div class="nav-wrapper">
+        <ul>
+          <li><RouterLink to="/">Start</RouterLink></li>
+          <li><RouterLink to="/players">Players</RouterLink></li>
+          <li><RouterLink to="/categories">Categories</RouterLink></li>
+          <li><RouterLink to="/games">Games</RouterLink></li>
+        </ul>
+      </div>
     </nav>
   </header>
-
   <RouterView />
 </template>
