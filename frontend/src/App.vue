@@ -1,6 +1,7 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
 import 'materialize-css/dist/css/materialize.min.css';
+import 'material-icons/iconfont/material-icons.css';
 </script>
 
 <template>

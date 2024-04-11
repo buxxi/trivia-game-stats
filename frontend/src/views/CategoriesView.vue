@@ -12,7 +12,6 @@ import { CategoriesService } from '../service/CategoriesService';
 
 <template>
   <main>
-    <h1>Categories</h1>
     <ul class="collection">
       <li class="collection-item avatar" v-for="(category, index) in data">
         <i class="circle" style="margin-top: 1em" :title="'rating: ' + category.rating"><b>{{ index + 1}}</b></i>
