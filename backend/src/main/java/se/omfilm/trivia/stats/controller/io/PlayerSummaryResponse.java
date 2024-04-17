@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 public record PlayerSummaryResponse(
         String name,
-        String avatar,
+        AvatarResponse avatar,
         GamesResponse games,
         BigDecimal rating,
         GuessesResponse guesses
@@ -32,7 +32,12 @@ public record PlayerSummaryResponse(
         }
     }
 
-    public PlayerSummaryResponse(PlayerSummary summary) {
-        this(summary.name(), summary.avatar(), new GamesResponse(summary.games()), summary.rating(), new GuessesResponse(summary.guesses()));
+    public record AvatarResponse(
+            String name,
+            String url
+    ) {}
+
+    public PlayerSummaryResponse(PlayerSummary summary, String avatarPath) {
+        this(summary.name(), new AvatarResponse(summary.avatar(), String.format(avatarPath, summary.avatar())), new GamesResponse(summary.games()), summary.rating(), new GuessesResponse(summary.guesses()));
     }
 }

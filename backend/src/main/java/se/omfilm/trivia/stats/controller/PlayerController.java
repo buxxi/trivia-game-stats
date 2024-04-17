@@ -1,6 +1,7 @@
 package se.omfilm.trivia.stats.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -17,16 +18,18 @@ import java.util.List;
 public class PlayerController {
     private final PlayerService playerService;
     private final PlayerAliasService playerAliasService;
+    private final String avatarUrlPattern;
 
     @Autowired
-    public PlayerController(PlayerService playerService, PlayerAliasService playerAliasService) {
+    public PlayerController(PlayerService playerService, PlayerAliasService playerAliasService, @Value("${avatar.url.pattern}") String avatarUrlPattern) {
         this.playerService = playerService;
         this.playerAliasService = playerAliasService;
+        this.avatarUrlPattern = avatarUrlPattern;
     }
 
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<PlayerSummaryResponse> getAllPlayers() {
-        return playerService.getAllSummary().stream().map(PlayerSummaryResponse::new).toList();
+        return playerService.getAllSummary().stream().map(summary -> new PlayerSummaryResponse(summary, avatarUrlPattern)).toList();
     }
 
     @GetMapping(value = "/{name}", produces = MediaType.APPLICATION_JSON_VALUE)

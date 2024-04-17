@@ -1,6 +1,6 @@
 <script setup>
   import GuessCounts from '../components/GuessCounts.vue';
-import { CategoriesService } from '../service/CategoriesService';
+  import { CategoriesService } from '../service/CategoriesService';
   import { onMounted, ref } from 'vue';
 
   let data = ref();
