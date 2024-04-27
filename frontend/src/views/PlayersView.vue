@@ -16,7 +16,7 @@
       <li class="collection-item avatar" v-for="(player, index) in data">
         <RouterLink :to="{name: 'player', params: {name : player.name}}" class="secondary-content"><i class="material-icons medium">chevron_right</i></RouterLink>
         <img class="circle" style="margin-top: 1em" :src="player.avatar.url" :title="player.avatar.name"/>
-        <h5>{{ player.name }}</h5>
+        <RouterLink :to="{name: 'player', params: {name : player.name}}"><h5>{{ player.name }}</h5></RouterLink>
         <div>
           <div>
             Guesses: <GuessCounts :correct="player.guesses.correct" :incorrect="player.guesses.incorrect" :unanswered="player.guesses.unanswered"/>

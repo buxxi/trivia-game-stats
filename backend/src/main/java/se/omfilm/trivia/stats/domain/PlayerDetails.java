@@ -47,7 +47,7 @@ public record PlayerDetails(
             BigDecimal rating
     ) {
         private static final int MINIMUM_CATEGORY_POINTS_COUNT = 1000;
-        private static final int MINIMUM_CATEGORY_GUESS_COUNT = 5;
+        private static final int MINIMUM_CATEGORY_GUESS_COUNT = 1;
 
         public static Category of(String name, GuessCount guessCount, GuessCount totals) {
             BigDecimal guessRating = BayesianEstimate.calculate(guessCount.getGuessPercentable(), totals.getGuessPercentable(), MINIMUM_CATEGORY_GUESS_COUNT).multiply(new BigDecimal("0.75"));

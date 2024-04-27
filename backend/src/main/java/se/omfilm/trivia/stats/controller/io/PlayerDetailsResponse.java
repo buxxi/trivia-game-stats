@@ -4,6 +4,7 @@ import se.omfilm.trivia.stats.domain.GuessCount;
 import se.omfilm.trivia.stats.domain.PlayerDetails;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 public record PlayerDetailsResponse(
@@ -21,10 +22,10 @@ public record PlayerDetailsResponse(
 ) {
     public record AvatarResponse(
             String name,
-            BigDecimal percentage
+            int count
     ) {
         public AvatarResponse(PlayerDetails.AvatarUsage response) {
-            this(response.name(), response.percentage());
+            this(response.name(), response.count());
         }
     }
 
