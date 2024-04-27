@@ -9,10 +9,7 @@ import se.omfilm.trivia.stats.domain.SingleGuess;
 import se.omfilm.trivia.stats.infrastructure.StatsFilesInfrastructure;
 import se.omfilm.trivia.stats.infrastructure.io.FullGame;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,12 +53,16 @@ public class CategoriesService {
                 .map(Map::values)
                 .flatMap(Collection::stream)
                 .map(g -> toSingleGuess(g, category.getKey()))
+                .flatMap(Optional::stream)
                 .map(SingleGuess::toGuessCount)
                 .reduce(GuessCount.EMPTY, GuessCount::merge);
     }
 
-    private static SingleGuess toSingleGuess(FullGame.Question.Guess g, String category) {
-        return new SingleGuess(GuessOption.valueOf(g.guessed()), g.correct(), g.time(), g.multiplier(), g.points(), category);
+    private static Optional<SingleGuess> toSingleGuess(FullGame.Question.Guess g, String category) {
+        if (g.guessed() == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new SingleGuess(GuessOption.valueOf(g.guessed()), g.correct(), g.time(), g.multiplier(), g.points(), category));
     }
 
     private GuessCount getGuessTotals(Collection<FullGame> allGames) {
@@ -72,6 +73,7 @@ public class CategoriesService {
                 .map(Map::values)
                 .flatMap(Collection::stream)
                 .map(g -> toSingleGuess(g, null))
+                .flatMap(Optional::stream)
                 .map(SingleGuess::toGuessCount)
                 .reduce(GuessCount.EMPTY, GuessCount::merge);
     }
