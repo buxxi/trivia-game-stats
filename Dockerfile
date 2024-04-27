@@ -19,5 +19,7 @@ RUN mvn install
 FROM amazoncorretto:17-alpine as run
 WORKDIR /app
 COPY --from=build-backend /app/target/trivia-game-stats-0.0.1-SNAPSHOT.jar app.jar
-ENTRYPOINT ["sh", "-c", "java -Dstats.file.path=/app/stats -jar /app/app.jar"]
+ENV STATS_FILE_PATH=/app/stats
+ENV AVATAR_URL_PATTERN=https://localhost/%s
+ENTRYPOINT java -Dstats.file.path=$STATS_FILE_PATH -Davatar.url.pattern=$AVATAR_URL_PATTERN -jar /app/app.jar
 EXPOSE 8080
