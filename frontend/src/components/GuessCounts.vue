@@ -1,43 +1,97 @@
 <script setup>
+    import { Bar } from 'vue-chartjs';
+    import { Chart as ChartJS, BarElement, Tooltip, Legend, Colors, CategoryScale, LinearScale, Title } from 'chart.js';
+    import { computed, defineProps } from 'vue';
+
     let props = defineProps(['correct', 'incorrect', 'unanswered']);
-    let total = props.correct + props.incorrect + props.unanswered;
-    let correctPercentage = Math.ceil((props.correct / total) * 100);
-    let incorrectPercentage = Math.ceil((props.incorrect / total) * 100);
-    let unansweredPercentage = Math.ceil((props.unanswered / total) * 100);
+
+    ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, Colors);
+
+    let loaded = computed(() => {
+      return !!props.correct || !!props.incorrect || !!props.unanswered;
+    });
+
+    let chartData = computed(() => {
+      if (!props.correct && !props.incorrect && !props.unanswered) {
+        return {
+            labels: [''],
+            datasets: [
+                { label: 'Example', data: [10] }
+            ]
+        };
+      }
+
+      return {
+        labels: [''],
+        datasets: [
+            { label: 'Correct', data: [props.correct] },
+            { label: 'Incorrect', data: [props.incorrect] },
+            { label: 'Unanswered', data: [props.unanswered] }
+        ]
+      };
+    });
+
+    let total = computed(() => chartData.value.datasets.flatMap(e => e.data).reduce((total, cur) => total + cur));
+
+    let options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: {
+            display : false
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+                let label = chartData.value.datasets[context.datasetIndex].label;
+                let value = ((context.raw / total.value) * 100).toFixed(1);
+                return `${label}: ${context.raw} (${value}%)`;
+            },
+          },
+        },
+      },
+      layout: {
+        padding: {
+          top : 5,
+          bottom : 5
+        }
+      },
+      scales: {
+        x: {
+            display : false,
+            min: 0,
+            max: total.value,
+            grid: {
+                display : false
+            },
+            stacked: true
+        },
+        y: {
+            display : false,
+            grid: {
+                display : false
+            },
+            stacked: true
+        }
+      }
+    };
 </script>
 
 
 <template>
-    <div class="guess-count">
-        <div class="correct" :title="'Correct: ' + correct + ' (' + correctPercentage + '%)'" :style="'flex-basis:' + correctPercentage + '%'"></div>
-        <div class="incorrect" :title="'Incorrect: ' + incorrect + ' (' + incorrectPercentage + '%)'" :style="'flex-basis:' + incorrectPercentage + '%'"></div>
-        <div class="unanswered" :title="'Unanswered: ' + incorrect + ' (' + unansweredPercentage + '%)'" :style="'flex-basis:' + unansweredPercentage + '%'"></div>
+    <div class="guesses">
+        <Bar v-if="loaded" :data="chartData" :options="options"/>
     </div>
 </template>
 
 <style>
-    .guess-count {
-        display: flex;
-        height : 1em;
+    .guesses {
+        height : 2em !important;
+        width : 100%;
+    }
+
+    .guesses canvas {
         border-radius: 1em;
-        overflow: hidden;
-        border: 1px solid lightgray;
-    }
-
-    .guess-count div {
-        height : 1em;
-        display : block;
-    }
-
-    .correct {
-        background-color: greenyellow;
-    }
-
-    .incorrect {
-        background-color: orangered;
-    }
-
-    .unanswered {
-        background-color: gray;
     }
 </style>

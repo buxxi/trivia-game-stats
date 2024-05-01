@@ -16,7 +16,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api' : 'http://localhost:8080'
+      '/trivia-stats/api' : 'http://localhost:8080'
     }
   }
 })
