@@ -82,8 +82,7 @@ public class GamesService {
 
     private List<String> toPlayersGuessed(FullGame.Question question, Map<String, String> playerIdToName, GuessOption option) {
         return question.guesses().entrySet().stream()
-                .filter(guess -> guess.getValue().guessed() != null)
-                .filter(guess -> GuessOption.valueOf(guess.getValue().guessed()) == option)
+                .filter(guess -> GuessOption.from(guess.getValue().guessed()) == option)
                 .map(guess -> playerIdToName.get(guess.getKey()))
                 .toList();
     }

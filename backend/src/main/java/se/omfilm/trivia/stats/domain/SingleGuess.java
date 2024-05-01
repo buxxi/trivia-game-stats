@@ -11,7 +11,10 @@ public record SingleGuess(
         String category
 ) {
     public GuessCount toGuessCount() {
-        return new GuessCount(toCorrectCount(), toIncorrectCount(), toUnansweredCount(), toPointsWon(), toPointsLost());
+        if (guessed() == GuessOption.UNANSWERED) {
+            return GuessCount.SINGLE_UNANSWERED;
+        }
+        return new GuessCount(toCorrectCount(), toIncorrectCount(), 0, toPointsWon(), toPointsLost());
     }
 
     private int toCorrectCount() {
@@ -20,10 +23,6 @@ public record SingleGuess(
 
     private int toIncorrectCount() {
         return Boolean.FALSE.equals(this.correct()) ? 1 : 0;
-    }
-
-    private int toUnansweredCount() {
-        return this.correct() == null ? 1 : 0;
     }
 
     private int toPointsWon() {

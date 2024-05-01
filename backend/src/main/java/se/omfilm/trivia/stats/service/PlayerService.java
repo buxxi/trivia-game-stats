@@ -167,7 +167,6 @@ public class PlayerService {
                 .map(Map::values)
                 .flatMap(Collection::stream)
                 .map(guess -> toSingleGuess(guess, null))
-                .flatMap(Optional::stream)
                 .map(SingleGuess::toGuessCount)
                 .reduce(GuessCount.EMPTY, GuessCount::merge);
     }
@@ -181,7 +180,7 @@ public class PlayerService {
                             return new PlayerCompleteData(
                                     playerAliasService.getMainName(player.name()).orElse(player.name()),
                                     Stream.of(new PlayerResult(player.name(), player.avatar(), player.place(), player.points())),
-                                    game.questions().stream().map(question -> toSingleGuess(question.guesses().get(playerId), question.category())).flatMap(Optional::stream)
+                                    game.questions().stream().map(question -> toSingleGuess(question.guesses().get(playerId), question.category()))
                             );
                         })
                 ).collect(Collectors.toMap(
@@ -191,11 +190,9 @@ public class PlayerService {
                 )).values().stream();
     }
 
-    private Optional<SingleGuess> toSingleGuess(FullGame.Question.Guess guess, String category) {
-        if (guess.guessed() == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new SingleGuess(GuessOption.valueOf(guess.guessed()), guess.correct(), guess.time(), guess.multiplier(), guess.points(), category));
+    private SingleGuess toSingleGuess(FullGame.Question.Guess guess, String category) {
+        GuessOption option = GuessOption.from(guess.guessed());
+        return new SingleGuess(option, guess.correct(), guess.time(), guess.multiplier(), guess.points(), category);
     }
 
     private record PlayerCompleteData(

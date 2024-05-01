@@ -52,17 +52,13 @@ public class CategoriesService {
                 .map(FullGame.Question::guesses)
                 .map(Map::values)
                 .flatMap(Collection::stream)
-                .map(g -> toSingleGuess(g, category.getKey()))
-                .flatMap(Optional::stream)
-                .map(SingleGuess::toGuessCount)
+                .map(g -> toGuessCount(g, category.getKey()))
                 .reduce(GuessCount.EMPTY, GuessCount::merge);
     }
 
-    private static Optional<SingleGuess> toSingleGuess(FullGame.Question.Guess g, String category) {
-        if (g.guessed() == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new SingleGuess(GuessOption.valueOf(g.guessed()), g.correct(), g.time(), g.multiplier(), g.points(), category));
+    private static GuessCount toGuessCount(FullGame.Question.Guess g, String category) {
+        return new SingleGuess(GuessOption.from(g.guessed()), g.correct(), g.time(), g.multiplier(), g.points(), category)
+                .toGuessCount();
     }
 
     private GuessCount getGuessTotals(Collection<FullGame> allGames) {
@@ -72,9 +68,7 @@ public class CategoriesService {
                 .map(FullGame.Question::guesses)
                 .map(Map::values)
                 .flatMap(Collection::stream)
-                .map(g -> toSingleGuess(g, null))
-                .flatMap(Optional::stream)
-                .map(SingleGuess::toGuessCount)
+                .map(g -> toGuessCount(g, null))
                 .reduce(GuessCount.EMPTY, GuessCount::merge);
     }
 }

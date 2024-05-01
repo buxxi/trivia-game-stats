@@ -10,6 +10,7 @@ public record GuessCount(
         int totalPointsLost
 ) {
     public static final GuessCount EMPTY = new GuessCount(0, 0, 0, 0, 0);
+    public static final GuessCount SINGLE_UNANSWERED = new GuessCount(0, 0, 1, 0, 0);
 
     public Percentable getGuessPercentable() {
         return new Percentable() {
