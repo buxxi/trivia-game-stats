@@ -15,7 +15,7 @@ public record GameSummaryResponse(
         GameSummaryWinnerResponse winner
 ) {
     public GameSummaryResponse(GameSummary summary) {
-        this(summary.id(), summary.players(), summary.questions(), new GameSummaryCategoriesResponse(summary.categories()), summary.started(), summary.duration().toMinutesPart(), new GameSummaryWinnerResponse(summary.winner()));
+        this(summary.id(), summary.players(), summary.questions(), new GameSummaryCategoriesResponse(summary.categories()), summary.started(), (int) summary.duration().toMinutes(), new GameSummaryWinnerResponse(summary.winner()));
     }
 
     public record GameSummaryWinnerResponse(

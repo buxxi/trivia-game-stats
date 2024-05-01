@@ -43,7 +43,7 @@ public class StatisticsController {
                 players.size(),
                 questions,
                 categories.size(),
-                totalDuration.toMinutesPart()
+                (int) totalDuration.toMinutes()
         );
     }
 }

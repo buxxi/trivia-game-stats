@@ -15,7 +15,7 @@ public record GameDetailsResponse(
     public GameDetailsResponse(GameDetails gameDetails) {
         this(
                 gameDetails.started(),
-                gameDetails.duration().toMinutesPart(),
+                (int) gameDetails.duration().toMinutes(),
                 gameDetails.players().stream().map(GamePlayerDetailsResponse::new).toList(),
                 gameDetails.question().stream().map(GameQuestionDetailsResponse::new).toList()
         );
