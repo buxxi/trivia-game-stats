@@ -3,6 +3,7 @@ package se.omfilm.trivia.stats.infrastructure;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import se.omfilm.trivia.stats.infrastructure.io.FullGame;
@@ -14,6 +15,7 @@ import java.util.Collection;
 
 @Service
 public class StatsFilesInfrastructure {
+    public static final String CACHE_KEY = "readAllGames";
     private final Path rootPath;
     private final ObjectMapper objectMapper;
 
@@ -23,7 +25,7 @@ public class StatsFilesInfrastructure {
         this.objectMapper = objectMapper;
     }
 
-    @Cacheable("fullgames")
+    @Cacheable(CACHE_KEY)
     public Collection<FullGame> readAllGames() {
         try (var files = Files.list(rootPath)) {
             return files
@@ -34,6 +36,13 @@ public class StatsFilesInfrastructure {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @CacheEvict(value = CACHE_KEY, allEntries = true)
+    public void clearCache() {}
+
+    public Path getRootPath() {
+        return rootPath;
     }
 
     private FullGame toFullGame(Path path) {
