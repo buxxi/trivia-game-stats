@@ -10,6 +10,12 @@
   let avatarData = computed(() => data.value?.avatars.map(e => ({name: e.name, value: e.count})));
   let guessData = computed(() => data.value ? Object.entries(data.value.guesses).flatMap(e => ([{name: e[0].toUpperCase() + " correct", value: e[1].correct}, {name: e[0].toUpperCase() + " incorrect", value: e[1].incorrect}])) : undefined);
   let placementData = computed(() => data.value?.placements.map(e => ({name: placementToString(e.place), value: e.total})));
+  let guessColors = [
+    "#ff2600", "#cc1e00",
+    "#228b22", "#186218",
+    "#1e90ff", "#0077ea",
+    "#ccb805", "#9a8b04"
+  ];
 
   onMounted(async () => {
     data.value = await new PlayersService().getPlayer(route.params.name);
@@ -63,7 +69,7 @@
         <div class="card">
           <div class="card-body">
             <span class="card-title">Guesses</span>
-            <div><DonutChart :data="guessData"/></div>
+            <div><DonutChart :data="guessData" :colors="guessColors"/></div>
           </div>
         </div>
       </div>

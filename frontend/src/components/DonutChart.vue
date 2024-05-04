@@ -5,7 +5,7 @@
 
     ChartJS.register(ArcElement, Tooltip, Legend, Colors);
 
-    let props = defineProps(['data']);
+    let props = defineProps(['data', 'colors']);
 
     let loaded = computed(() => {
       return !!props.data;
@@ -18,7 +18,7 @@
 
       return {
         labels: props.data?.map(e => e.name),
-        datasets: [ { data: props.data?.map(e => e.value) } ]        
+        datasets: [ { data: props.data?.map(e => e.value), backgroundColor : props.colors } ]    
       }
     });
 
