@@ -1,6 +1,7 @@
 package se.omfilm.trivia.stats.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,10 +19,12 @@ import java.util.List;
 @RequestMapping("/api/v1/games")
 public class GamesController {
     private final GamesService gamesService;
+    private final String avatarUrlPattern;
 
     @Autowired
-    public GamesController(GamesService gamesService) {
+    public GamesController(GamesService gamesService, @Value("${avatar.url.pattern}") String avatarUrlPattern) {
         this.gamesService = gamesService;
+        this.avatarUrlPattern = avatarUrlPattern;
     }
 
     @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -32,7 +35,7 @@ public class GamesController {
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public GameDetailsResponse getGameDetails(@PathVariable("id") String id) {
         return gamesService.getGameDetails(id)
-                .map(GameDetailsResponse::new)
+                .map(gameDetails -> new GameDetailsResponse(gameDetails, avatarUrlPattern))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No game with id: " + id));
     }
 }

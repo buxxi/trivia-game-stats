@@ -12,23 +12,23 @@ public record GameDetailsResponse(
         List<GamePlayerDetailsResponse> players,
         List<GameQuestionDetailsResponse> questions
 ) {
-    public GameDetailsResponse(GameDetails gameDetails) {
+    public GameDetailsResponse(GameDetails gameDetails, String avatarPath) {
         this(
                 gameDetails.started(),
                 (int) gameDetails.duration().toMinutes(),
-                gameDetails.players().stream().map(GamePlayerDetailsResponse::new).toList(),
+                gameDetails.players().stream().map(e -> new GamePlayerDetailsResponse(e, avatarPath)).toList(),
                 gameDetails.question().stream().map(GameQuestionDetailsResponse::new).toList()
         );
     }
 
     public record GamePlayerDetailsResponse(
             String name,
-            String avatar,
+            GameAvatarDetailsResponse avatar,
             int points,
             int place
     ) {
-       public GamePlayerDetailsResponse(PlayerResult player) {
-           this(player.name(), player.avatar(), player.points(), player.place());
+       public GamePlayerDetailsResponse(PlayerResult player, String avatarPath) {
+           this(player.name(), new GameAvatarDetailsResponse(player.avatar(), String.format(avatarPath, player.avatar())), player.points(), player.place());
        }
     }
 
@@ -51,4 +51,9 @@ public record GameDetailsResponse(
             this(answer.answer(), answer.correct(), answer.playersGuessed());
         }
     }
+
+    public record GameAvatarDetailsResponse(
+            String name,
+            String url
+    ) {}
 }

@@ -12,12 +12,13 @@
 <template>
   <main>
     <h1>Games</h1>
-    <div v-for="game in data">
-      <RouterLink :to="{name: 'game', params: {id : game.id}}">
-        <pre>
-          {{ JSON.stringify(game, null, 2) }}
-        </pre>
-      </RouterLink>
-    </div>
+    <ul class="collection">
+      <li class="collection-item avatar" v-for="(game, index) in data">
+        <RouterLink :to="{name: 'game', params: {id : game.id}}" class="secondary-content"><i class="material-icons medium">chevron_right</i></RouterLink>
+        <div>
+          <h5>{{ game.players }} players @ {{ new Date(Date.parse(game.started)).toDateString() }} with {{ game.winner.name }} as winner</h5>
+        </div>
+      </li>
+    </ul>
   </main>
 </template>
