@@ -2,7 +2,7 @@ package se.omfilm.trivia.stats.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class StatsFilesInfrastructure {
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public StatsFilesInfrastructure(@Value("${stats.file.path}") Path rootPath, ObjectMapper objectMapper) {
+    public StatsFilesInfrastructure(@Qualifier("data.path") Path rootPath, ObjectMapper objectMapper) {
         this.rootPath = rootPath;
         this.objectMapper = objectMapper;
     }
