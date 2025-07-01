@@ -12,6 +12,6 @@ import se.omfilm.trivia.stats.infrastructure.StatsFilesInfrastructure;
 public class CacheConfiguration {
     @Bean
     public CacheManager createCacheManager() {
-        return new ConcurrentMapCacheManager(StatsFilesInfrastructure.CACHE_KEY);
+        return new ConcurrentMapCacheManager(StatsFilesInfrastructure.GAMES_CACHE_KEY, StatsFilesInfrastructure.ALIAS_CACHE_KEY);
     }
 }

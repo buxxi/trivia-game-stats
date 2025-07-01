@@ -12,10 +12,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class StatsFilesInfrastructure {
-    public static final String CACHE_KEY = "readAllGames";
+    public static final String GAMES_CACHE_KEY = "readAllGames";
+    public static final String ALIAS_CACHE_KEY = "readAliases";
+    public static final String ALIAS_FILENAME = "aliases.json";
+
     private final Path rootPath;
     private final ObjectMapper objectMapper;
 
@@ -25,12 +30,12 @@ public class StatsFilesInfrastructure {
         this.objectMapper = objectMapper;
     }
 
-    @Cacheable(CACHE_KEY)
+    @Cacheable(GAMES_CACHE_KEY)
     public Collection<FullGame> readAllGames() {
         try (var files = Files.list(rootPath)) {
             return files
                     .parallel()
-                    .filter(p -> p.toString().endsWith(".json"))
+                    .filter(p -> p.toString().endsWith(".json") && !p.toString().endsWith(ALIAS_FILENAME))
                     .map(this::toFullGame)
                     .toList();
         } catch (IOException e) {
@@ -38,8 +43,34 @@ public class StatsFilesInfrastructure {
         }
     }
 
-    @CacheEvict(value = CACHE_KEY, allEntries = true)
+    @Cacheable(ALIAS_CACHE_KEY)
+    public Map<String, List<String>> readAliases() {
+        Path path = aliasPath();
+        if (!Files.exists(path)) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(Files.newInputStream(path), Map.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @CacheEvict(value = ALIAS_CACHE_KEY, allEntries = true)
+    public void writeAliases(Map<String, List<String>> aliasMap) {
+        try {
+            objectMapper.writeValue(Files.newOutputStream(aliasPath()), aliasMap);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @CacheEvict(value = GAMES_CACHE_KEY, allEntries = true)
     public void clearCache() {}
+
+    private Path aliasPath() {
+        return rootPath.resolve(ALIAS_FILENAME);
+    }
 
     public Path getRootPath() {
         return rootPath;

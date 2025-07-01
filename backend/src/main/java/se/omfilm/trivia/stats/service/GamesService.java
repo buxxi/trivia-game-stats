@@ -63,7 +63,8 @@ public class GamesService {
     }
 
     private PlayerResult toPlayerResult(FullGame.Player player) {
-        return new PlayerResult(player.name(), player.avatar(), player.place(), player.points());
+        String name = playerAliasService.getMainName(player.name()).orElse(player.name());
+        return new PlayerResult(name, player.avatar(), player.place(), player.points());
     }
 
     private GameDetails.GameQuestionDetails toDetails(FullGame.Question question, Map<String, String> playerIdToName) {
