@@ -40,12 +40,7 @@ public class PlayerController {
     }
 
     @PutMapping(value = "/{name}/alias")
-    public void addAlias(@PathVariable("name") String name, @RequestBody List<String> aliases) {
-        playerAliasService.addAliases(name, aliases);
-    }
-
-    @DeleteMapping(value = "/{name}/alias")
-    public void deleteAlias(@PathVariable("name") String name, @RequestBody List<String> aliases) {
-        playerAliasService.removeAliases(name, aliases);
+    public void setAlias(@PathVariable("name") String name, @RequestBody List<String> aliases) {
+        playerAliasService.setAliases(name, aliases);
     }
 }

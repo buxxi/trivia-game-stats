@@ -7,6 +7,7 @@
 
   let route = useRoute();
   let data = ref();
+  let newAlias = ref();
   let avatarData = computed(() => data.value?.avatars.map(e => ({name: e.name, value: e.count})));
   let guessData = computed(() => data.value ? Object.entries(data.value.guesses).flatMap(e => ([{name: e[0].toUpperCase() + " correct", value: e[1].correct}, {name: e[0].toUpperCase() + " incorrect", value: e[1].incorrect}])) : undefined);
   let placementData = computed(() => data.value?.placements.map(e => ({name: placementToString(e.place), value: e.total})));
@@ -34,12 +35,22 @@
     }
   }
 
+  function deleteAlias(alias) {
+    data.value.aliases.splice(data.value.aliases.indexOf(alias), 1);
+    new PlayersService().setAliases(route.params.name, data.value.aliases);
+  }
+
+  function addNewAlias() {
+    data.value.aliases.push(newAlias.value);
+    newAlias.value = "";
+    new PlayersService().setAliases(route.params.name, data.value.aliases);
+  }
+
 </script>
 
 <template>
   <main>
     <h1>{{data?.name}}</h1>
-    <div v-if="data?.aliases.length > 0">Also known as: {{ data?.aliases }}</div>
     <div class="row">
       <div class="col s12 m3">
         <div class="card">
@@ -54,6 +65,26 @@
                 <li class="collection-item valign-wrapper"><i class="material-icons circle">clear</i>&nbsp;averageMultiplier:&nbsp;<b>{{ data?.averageMultiplier }}</b></li>
               </ul>
             </div>
+          </div>
+        </div>
+        <div class="card">
+          <span class="card-title">Aliases</span>
+          <div>
+            <ul class="collection">
+                <li class="collection-item" v-for="(alias) in data?.aliases">
+                    <div>
+                        {{ alias }}
+                        <a href="#" @click.prevent="deleteAlias(alias)" class="secondary-content"><i class="material-icons trash red-text">delete</i></a>
+                    </div>
+                </li>
+                <li class="collection-item" v-if="data?.aliases.length == 0"><i>None</i></li>
+                <li class="collection-item">
+                    <form class="input-field row">
+                        <input type="text" placeholder="Enter new alias" class="col s10" v-model="newAlias" />
+                        <button @click.prevent="addNewAlias" class="btn btn-small col green"><i class="material-icons">add</i></button>
+                    </form>
+                </li>
+            </ul>
           </div>
         </div>
       </div>

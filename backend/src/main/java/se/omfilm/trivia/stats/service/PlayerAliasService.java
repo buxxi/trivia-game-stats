@@ -36,28 +36,18 @@ public class PlayerAliasService {
             lock.readLock().unlock();
         }
     }
-    public void addAliases(String name, List<String> aliases) {
+    public void setAliases(String name, List<String> aliases) {
         lock.writeLock().lock();
         try {
             if (isAlias(name)) {
                 throw new IllegalStateException(name + " is already used as an alias");
             }
             Map<String, List<String>> aliasMap = loadAliasMap();
-            aliasMap.merge(name, aliases, (a, b) -> Stream.concat(a.stream(), b.stream()).toList());
-            writeAliasMap(aliasMap);
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    public void removeAliases(String name, List<String> aliases) {
-        lock.writeLock().lock();
-        try {
-            if (isAlias(name)) {
-                throw new IllegalStateException(name + " is already used as an alias");
+            if (aliases.isEmpty()) {
+                aliasMap.remove(name);
+            } else {
+                aliasMap.put(name, aliases);
             }
-            Map<String, List<String>> aliasMap = loadAliasMap();
-            aliasMap.put(name, aliasMap.getOrDefault(name, List.of()).stream().filter(alias -> !aliases.contains(alias)).toList());
             writeAliasMap(aliasMap);
         } finally {
             lock.writeLock().unlock();
