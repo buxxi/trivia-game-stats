@@ -9,14 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "material-icons": "^1.13.12",
-    "materialize-css": "^1.0.0-rc.2",
-    "vue": "^3.4.21",
-    "vue-chartjs": "^5.3.1",
-    "vue-router": "^4.3.0"
+    "material-icons": "^1.13.14",
+    "materialize-css": "^1.0.0",
+    "vue": "^3.5.26",
+    "vue-chartjs": "^5.3.3",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.4",
-    "vite": "^5.1.6"
+    "@vitejs/plugin-vue": "^6.0.3",
+    "vite": "^7.3.1"
   }
 }
