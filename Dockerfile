@@ -23,3 +23,5 @@ ENV XDG_DATA_HOME=/app/data
 ENV AVATAR_URL_PATTERN=https://localhost/%s
 ENTRYPOINT ["java","-Davatar.url.pattern=${AVATAR_URL_PATTERN}","-jar","/app/app.jar"]
 EXPOSE 8080
+
+HEALTHCHECK --interval=300s --timeout=3s CMD wget --quiet --tries=1 --spider http://localhost:8080/trivia-stats/actuator/health || exit 1
