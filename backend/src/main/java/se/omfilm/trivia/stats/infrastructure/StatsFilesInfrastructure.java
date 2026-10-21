@@ -37,6 +37,7 @@ public class StatsFilesInfrastructure {
                     .parallel()
                     .filter(p -> p.toString().endsWith(".json") && !p.toString().endsWith(ALIAS_FILENAME))
                     .map(this::toFullGame)
+                    .filter(g -> !g.players().isEmpty())
                     .toList();
         } catch (IOException e) {
             throw new RuntimeException(e);
