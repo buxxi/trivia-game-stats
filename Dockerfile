@@ -20,8 +20,7 @@ FROM amazoncorretto:25-alpine AS run
 WORKDIR /app
 COPY --from=build-backend /app/target/trivia-game-stats-0.0.1-SNAPSHOT.jar app.jar
 ENV XDG_DATA_HOME=/app/data
-ENV AVATAR_URL_PATTERN=https://localhost/%s
-ENTRYPOINT ["java","-Davatar.url.pattern=${AVATAR_URL_PATTERN}","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]
 EXPOSE 8080
 
 HEALTHCHECK --interval=300s --timeout=3s CMD wget --quiet --tries=1 --spider http://localhost:8080/trivia-stats/actuator/health || exit 1

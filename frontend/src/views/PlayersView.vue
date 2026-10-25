@@ -1,6 +1,7 @@
 <script setup>
   import { PlayersService } from '../service/PlayersService';
   import GuessCounts from '../components/GuessCounts.vue';
+  import PlayerAvatar from '../components/PlayerAvatar.vue';
   import { onMounted, ref } from 'vue';
 
   let data = ref();
@@ -15,7 +16,7 @@
     <ul class="collection">
       <li class="collection-item avatar" v-for="(player, index) in data">
         <RouterLink :to="{name: 'player', params: {name : player.name}}" class="secondary-content"><i class="material-icons medium">chevron_right</i></RouterLink>
-        <img class="circle" style="margin-top: 1em" :src="player.avatar.url" :title="player.avatar.name"/>
+        <PlayerAvatar class="circle" style="margin-top: 1em" :name="player.name" :avatar="player.avatar"/>
         <RouterLink :to="{name: 'player', params: {name : player.name}}"><h5>{{ player.name }}</h5></RouterLink>
         <div>
           <div>

@@ -20,7 +20,7 @@
       <div class="col s24 m3" v-for="(player, index) in data?.players">
         <div class="card horizontal">
           <div class="card-image">
-            <img style="margin-top: 1em" :src="player.avatar.url" :title="player.avatar.name"/>
+            <PlayerAvatar :name="player.name" :avatar="player.avatar"/>
           </div>
           <div class="card-content">
             <span class="card-title"><b>{{ player.place }}:</b> {{ player.name }}</span>
@@ -39,8 +39,8 @@
             <div class="card" :class="{ green: question.answers[0].correct}">
               <div class="card-content">
                 <span class="card-title activator"><b>A:</b> {{ question.answers[0].answer }}</span>
-                <span style="font-size: 2em" :style="{marginRight: ( playerIndex * 2) +'em'}" class="btn-floating halfway-fab white" v-for="(player, playerIndex) in question.answers[0].playersGuessed.map(p => data.players.find(p2 => p2.name == p))">
-                  <PlayerAvatar :name="player.name" :avatar="player.avatar"/>
+                <span :style="{marginRight: ( playerIndex * 2) +'em'}" class="btn-floating halfway-fab white" v-for="(player, playerIndex) in question.answers[0].playersGuessed.map(p => data.players.find(p2 => p2.name == p))">
+                  <PlayerAvatar :name="player.name" :avatar="player.avatar" style="height: 1em; margin: 0.15em"/>
                 </span>
               </div>
             </div>
@@ -49,8 +49,8 @@
             <div class="card" :class="{ green: question.answers[1].correct}">
               <div class="card-content">
                 <span class="card-title activator"><b>B:</b> {{ question.answers[1].answer }}</span>
-                <span style="font-size: 2em" :style="{marginRight: ( playerIndex * 2) +'em'}" class="btn-floating halfway-fab white" v-for="(player, playerIndex) in question.answers[1].playersGuessed.map(p => data.players.find(p2 => p2.name == p))">
-                  <PlayerAvatar :name="player.name" :avatar="player.avatar"/>
+                <span :style="{marginRight: ( playerIndex * 2) +'em'}" class="btn-floating halfway-fab white" v-for="(player, playerIndex) in question.answers[1].playersGuessed.map(p => data.players.find(p2 => p2.name == p))">
+                  <PlayerAvatar :name="player.name" :avatar="player.avatar" style="height: 1em; margin: 0.15em"/>
                 </span>
               </div>
             </div>
@@ -59,8 +59,8 @@
             <div class="card" :class="{ green: question.answers[2].correct}">
               <div class="card-content">
                 <span class="card-title activator"><b>C:</b> {{ question.answers[2].answer }}</span>
-                <span style="font-size: 2em" :style="{marginRight: ( playerIndex * 2) +'em'}" class="btn-floating halfway-fab white" v-for="(player, playerIndex) in question.answers[2].playersGuessed.map(p => data.players.find(p2 => p2.name == p))">
-                  <PlayerAvatar :name="player.name" :avatar="player.avatar"/>
+                <span :style="{marginRight: ( playerIndex * 2) +'em'}" class="btn-floating halfway-fab white" v-for="(player, playerIndex) in question.answers[2].playersGuessed.map(p => data.players.find(p2 => p2.name == p))">
+                  <PlayerAvatar :name="player.name" :avatar="player.avatar" style="height: 1em; margin: 0.15em"/>
                 </span>
               </div>
             </div>
@@ -69,8 +69,8 @@
             <div class="card" :class="{ green: question.answers[3].correct}">
               <div class="card-content">
                 <span class="card-title activator"><b>D:</b> {{ question.answers[3].answer }}</span>
-                <span style="font-size: 2em" :style="{marginRight: ( playerIndex * 2) +'em'}" class="btn-floating halfway-fab white" v-for="(player, playerIndex) in question.answers[3].playersGuessed.map(p => data.players.find(p2 => p2.name == p))">
-                  <PlayerAvatar :name="player.name" :avatar="player.avatar"/>
+                <span :style="{marginRight: ( playerIndex * 2) +'em'}" class="btn-floating halfway-fab white" v-for="(player, playerIndex) in question.answers[3].playersGuessed.map(p => data.players.find(p2 => p2.name == p))">
+                  <PlayerAvatar :name="player.name" :avatar="player.avatar" style="height: 1em; margin: 0.15em"/>
                 </span>
               </div>
             </div>
@@ -80,3 +80,20 @@
     </ul>
   </main>
 </template>
+
+<style scoped>
+.card-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 1em;
+  img {
+    width: 3em;
+    height: 3em;
+  }
+}
+
+.btn-floating {
+  font-size: 2em;
+}
+</style>

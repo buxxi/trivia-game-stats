@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "npm run fetch:avatars",
     "build": "vite build",
+    "prebuild": "npm run fetch:avatars",
+    "fetch:avatars": "node scripts/fetch-avatars.js",
     "preview": "vite preview"
   },
   "dependencies": {
